@@ -119,15 +119,33 @@ We want a formula that **blends** the two behaviors:
 
 - **When the pool gets imbalanced** (one side is much larger, near the edges): we want constant product behavior. The curve bends. Price moves. The pool resists and never fully drains. Like the rounded hyperbola from part 1.
 
-Visually, this blended shape looks like a **flat line in the middle that gradually curves out at the edges.** Imagine taking the diagonal line (constant sum) and pulling its endpoints outward so they never touch the axes — that's the StableSwap curve.
+Visually, here are the three curves side by side. Imagine the x-axis is USDC and the y-axis is USDT, both starting at 100 each:
 
-The tables above show the difference clearly:
+```mermaid
+graph TB
+    subgraph CS["Constant Sum (x + y = 200)"]
+        direction LR
+        CS1["diagonal line from (0,200) to (200,0)<br/>price = 1:1 always<br/>touches axes → drains completely"]
+    end
 
-| Pool state | Constant product price | Constant sum price | What we want |
+    subgraph CP["Constant Product (x × y = 10,000)"]
+        direction LR
+        CP1["rounded curve, never touches axes<br/>price moves with every trade<br/>slippage everywhere"]
+    end
+
+    subgraph IDEAL["Ideal Blended Curve (StableSwap)"]
+        direction LR
+        ID1["flat diagonal in the middle<br/>(acts like constant sum)<br/>curves out at the edges<br/>(acts like constant product)<br/>never touches axes"]
+    end
+```
+
+At the center (100 USDC, 100 USDT), all three curves give the same price — 1:1. The difference is what happens when you move away from center:
+
+| Pool state | Constant product price | Constant sum price | Ideal curve price |
 |---|---|---|---|
-| Balanced (100, 100) | 1.00 | 1.00 | **1.00** (both agree here) |
+| Balanced (100, 100) | 1.00 | 1.00 | **1.00** (all agree here) |
 | Slightly off (110, 91) | 1.21 | 1.00 | **~1.05** (mostly flat, slight bend) |
-| Very off (200, 50) | 4.00 | 1.00 | **~1.50** (clearly curved, resisting) |
+| Very off (200, 50) | 4.00 | 1.00 (but pool is dead at 200,0) | **~1.50** (curved, resisting, alive) |
 
 The formula should behave like constant sum in the first row, gradually transition in the second, and strongly curve in the third — all controlled by one parameter.
 
