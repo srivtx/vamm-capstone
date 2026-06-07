@@ -1,0 +1,32 @@
+# Build
+target/
+**/target/
+
+# Node
+node_modules/
+**/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Env
+.env
+.env.local
+
+# Anchor test ledger
+**/test-ledger/
+
+# Debug
+**/*.db
+**/*.db-*
+
+# OpenCode
+.claude/
+.next/

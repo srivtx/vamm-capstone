@@ -1,0 +1,21 @@
+[toolchain]
+package_manager = "yarn"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+vamm = "75yCYNeZrSoVKWk5kFti7tRpRacZHptmAqtPwfc9U4Zt"
+
+[programs.devnet]
+vamm = "75yCYNeZrSoVKWk5kFti7tRpRacZHptmAqtPwfc9U4Zt"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test"
+
+[hooks]
