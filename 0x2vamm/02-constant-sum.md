@@ -113,43 +113,27 @@ The price **never moves**. The pool offers infinite liquidity until it runs out.
 
 ## What we actually want
 
-We want a formula that combines both behaviors:
+We want a formula that **blends** the two behaviors:
 
-```
-                                               Ideal curve:
-  USDT                                           USDT
-   ↑                                              ↑
-   |   ·· constant product                         |    ····
-   |     ·                                         |  ·      ·
-   |      ·                                        | ·        ·
-   |       ·                                       |·          ·
-   |        ·                                      |            ···
-   └──────────→ USDC                               └──────────────→ USDC
+- **When the pool is balanced** (USDC ≈ USDT, near the middle): we want constant sum behavior. Zero slippage. 1:1 pricing. Tight spreads. Like the flat diagonal line — the price doesn't budge for normal trading.
 
-                        vs.
+- **When the pool gets imbalanced** (one side is much larger, near the edges): we want constant product behavior. The curve bends. Price moves. The pool resists and never fully drains. Like the rounded hyperbola from part 1.
 
-   USDT
-   ↑
-   |· constant sum (straight line, drains completely)
-   | ·
-   |  ·
-   |   ·
-   |    ·
-   └──────→ USDC
+Visually, this blended shape looks like a **flat line in the middle that gradually curves out at the edges.** Imagine taking the diagonal line (constant sum) and pulling its endpoints outward so they never touch the axes — that's the StableSwap curve.
 
+The tables above show the difference clearly:
 
-In the middle (where the pool is balanced):
-  → Act like constant sum: flat, tight, 1:1, zero slippage
-  → This is the "·" flat region in the ideal curve above
+| Pool state | Constant product price | Constant sum price | What we want |
+|---|---|---|---|
+| Balanced (100, 100) | 1.00 | 1.00 | **1.00** (both agree here) |
+| Slightly off (110, 91) | 1.21 | 1.00 | **~1.05** (mostly flat, slight bend) |
+| Very off (200, 50) | 4.00 | 1.00 | **~1.50** (clearly curved, resisting) |
 
-At the edges (where the pool is imbalanced):
-  → Act like constant product: curved, resistant, never drains
-  → This is the "··" curved tail in the ideal curve above
-```
+The formula should behave like constant sum in the first row, gradually transition in the second, and strongly curve in the third — all controlled by one parameter.
 
-The question is: **how do you write a single formula that does both?**
+That parameter is the **amplification coefficient A**, the core of Curve Finance's StableSwap. High A = more of the flat diagonal behavior. Low A = more of the curved hyperbola behavior.
 
-The answer: Curve Finance's StableSwap. One knob — the amplification coefficient A — controls how flat the middle is and when the curve starts bending. That's what we'll build next.
+That's what we'll build next.
 
 ---
 
