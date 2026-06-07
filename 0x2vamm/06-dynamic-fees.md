@@ -6,114 +6,146 @@
 
 ## Quick vocabulary
 
-A **basis point** (bp) is one hundredth of a percent. 1 bp = 0.01%. So:
-- 5 bps = 0.05%
-- 30 bps = 0.30%
-- 100 bps = 1.00%
+A **basis point** (bp) is one hundredth of a percent: `1 bp = 0.01%`.
 
-Swap fees in AMMs are measured in basis points. The fee is taken from the input amount before the trade executes.
+| bps | Percent | Example |
+|---|---|---|
+| 1 bp | 0.01% | Microscopic fee |
+| 5 bps | 0.05% | Very cheap — stable pairs |
+| 30 bps | 0.30% | Standard for normal volatility |
+| 100 bps | 1.00% | Expensive — high volatility protection |
 
-## What fee should we charge?
+The fee is taken from the input amount **before** the trade executes. If you swap 100 USDC at 30 bps, the pool takes 0.30 USDC as fee, and 99.70 USDC goes into the trade calculation.
 
-Academic research (papers by Campbell, Baggiani, and others) all point to the same idea: **fees should scale with volatility.**
+## The fee spectrum
 
-| Market condition | Volatility (σ) | What's happening | Good fee |
+Academic research converges on a simple rule: **fees should scale with volatility.** Low volatility = low fee (attract volume). High volatility = high fee (protect LPs from adverse selection).
+
+| Volatility (σ) | Market condition | Fee | Why |
 |---|---|---|---|
-| Stable, pegged | ≤ 15% | Price barely moves | 5 bps (0.05%) — cheap, attract volume |
-| Normal | 15%–75% | Regular price action | Ramp from 5 to 30 bps |
-| High | 75%–120% | Significant swings | Ramp from 30 to 100 bps |
-| Extreme | ≥ 120% | Chaos | Cap at 100 bps (1%) — protect LPs |
+| ≤ 15% | Stable, pegged | 5 bps | Price barely moves. LPs face almost no IL/LVR. Make it cheap. |
+| 15%–75% | Normal | Ramp 5 → 30 bps | Moderate risk. Fee rises smoothly with volatility. |
+| 75%–120% | High | Ramp 30 → 100 bps | Significant risk. LP needs meaningful compensation. |
+| ≥ 120% | Extreme | 100 bps (capped) | Maximum protection. Deters toxic flow. Never goes above 1%. |
 
-Intuition: when the market is calm, fees should be low to attract traders. When it's wild, fees should be high to compensate LPs for the risk they're taking. The signal is σ, our volatility reading from part 5.
+## Why not just use hard thresholds?
 
-## The smoothstep function
+We could say: "σ < 15% → 5 bps, σ ≥ 15% → 30 bps." But that creates a cliff:
 
-We could just set hard thresholds: σ < 15% → 5 bps, 15% ≤ σ < 75% → 30 bps, etc. But that creates **step jumps** — at 14.9% you pay 5 bps, at 15.1% you pay 30 bps. Arbitrageurs would time trades to exploit these boundaries.
+```
+At σ = 14.9%: fee = 5 bps   (very cheap)
+At σ = 15.1%: fee = 30 bps  (6× more expensive)
 
-Instead we use a **smoothstep** — a mathematical curve that transitions smoothly between values:
+An attacker watching the on-chain volatility could time their trades
+to exploit the gap — trade heavily just before crossing 15% to get
+the cheap rate, or push σ across the threshold to spike fees and
+block competitors.
+```
+
+Instead we use a **smoothstep** — a mathematical curve that transitions continuously:
 
 ```
 smoothstep(t) = 3t² − 2t³
 ```
 
-Where `t` goes from 0 to 1 as we move through a volatility band.
+Where `t` goes from 0 (start of a band) to 1 (end of a band). Let's see what this produces in practice:
 
-What this produces:
+### Band 1: σ from 15% to 75%
+
+| σ | t (position in band) | smoothstep(t) | Fee |
+|---|---|---|---|
+| 15% | 0.00 | 0.000 | **5 bps** |
+| 30% | 0.25 | 0.156 | 5 + 25×0.156 = **9 bps** |
+| 45% | 0.50 | 0.500 | 5 + 25×0.500 = **18 bps** |
+| 60% | 0.75 | 0.844 | 5 + 25×0.844 = **26 bps** |
+| 75% | 1.00 | 1.000 | **30 bps** |
+
+### Band 2: σ from 75% to 120%
+
+| σ | t (position in band) | smoothstep(t) | Fee |
+|---|---|---|---|
+| 75% | 0.00 | 0.000 | **30 bps** |
+| 86% | 0.25 | 0.156 | 30 + 70×0.156 = **41 bps** |
+| 98% | 0.50 | 0.500 | 30 + 70×0.500 = **65 bps** |
+| 109% | 0.75 | 0.844 | 30 + 70×0.844 = **89 bps** |
+| 120% | 1.00 | 1.000 | **100 bps** |
+
+Notice: the fee rises gently at the start of each band, steepens in the middle, and flattens again at the end. This S-curve has a key property: **zero slope at the boundaries.** At exactly 15%, the fee isn't twitching — it's stable. At exactly 75%, the transition between bands is seamless. No cliffs, no thresholds, no exploit windows.
+
+## EMA smoothing: don't twitch on every trade
+
+Raw volatility (σ) can spike on a single large trade. If we fed raw σ directly into smoothstep, the fee would bounce around constantly. So we run it through **another EWMA** (same technique we used for variance in part 5):
 
 ```
-Fee (bps)
-   100 ┤                              ┌──────
-       │                         ┌────┘
-    50 ┤                    ┌────┘
-       │              ┌─────┘
-     5 ┤──────────────┘
-       └──────┬───────┬───────┬──────────→ σ
-             15%     75%    120%
-
-The fee rises smoothly — no jumps, no cliffs, no thresholds to exploit.
+fee_smoothed = 0.9 × fee_old_smoothed + 0.1 × fee_raw
 ```
 
-The smoothstep has a useful property: it's flat at the start and end of each band. This means when volatility is very low (well below 15%) or very high (well above 120%), the fee doesn't fluctuate — it stays steady. The fee only changes meaningfully during the transition zones.
+Concrete example: fee has been stable at 5 bps. A volatility spike pushes raw fee to 50 bps:
 
-## EMA smoothing (again)
+| Update # | Old smoothed | Raw fee | New smoothed |
+|---|---|---|---|
+| 1 | 5 | 50 | 0.9×5 + 0.1×50 = 9.5 |
+| 2 | 9.5 | 50 | 0.9×9.5 + 0.1×50 = 13.6 |
+| 3 | 13.6 | 50 | 0.9×13.6 + 0.1×50 = 17.2 |
+| 5 | 21.9 | 50 | 0.9×21.9 + 0.1×50 = 24.7 |
+| 10 | 37.0 | 50 | 0.9×37.0 + 0.1×50 = 38.3 |
+| 20 | 46.9 | 50 | 0.9×46.9 + 0.1×50 = 47.2 |
 
-Just like with the variance EWMA in part 5, we don't want the fee to twitch on every trade. We run it through another EWMA:
+It takes about 10 updates to get most of the way there, and 20+ to fully settle. A single spike barely moves the needle (update #1 only went from 5 to 9.5). Sustained high volatility pushes it steadily toward the raw value.
 
-```
-fee_smoothed = 0.9 × old_fee_smoothed + 0.1 × raw_fee_from_smoothstep
-```
+## Rate limiting: a per-block speed cap
 
-This gives roughly a 10-update half-life. If volatility spikes for one trade and goes back to calm, the fee barely moves. If volatility stays elevated for 10+ trades, the fee slides up appropriately.
+Even with EMA smoothing, fees could jump 30+ bps in ~10 trades. That's fast enough for an attacker to front-run — push volatility up with a large trade, then trade again before the higher fee lands.
 
-## Rate limiting
-
-Even with EMA smoothing, a regime change from calm to chaos could push the fee from 5 to 100 bps in a few dozen trades. That still creates small windows where informed traders can act ahead of the fee change.
-
-So we add one more guard: **a per-block cap.**
+So we add a hard cap:
 
 ```
 |fee_new − fee_old| ≤ 10 bps per slot
 ```
 
-A "slot" is Solana's block time — roughly 400 milliseconds. The fee can only change by 10 basis points (0.1%) per slot. A full shift from 5 bps to 100 bps takes:
+A **slot** is Solana's block time — roughly 400 milliseconds. The fee can change at most 10 basis points per block. A full shift from 5 bps to 100 bps takes:
 
 ```
-(100 − 5) / 10 = 9.5 ≈ 10 slots ≈ 4 seconds
+(100 − 5) / 10 = 9.5 slots ≈ 4 seconds
 ```
 
-This is fast enough that the fee responds to real market shifts, but slow enough that:
-- A single manipulative trade can't spike the fee
-- An attacker can't front-run the fee increase and extract value
-- The fee "earns" its way up through sustained volatility
+Slot-by-slot walkthrough during a volatility spike:
+
+| Slot | Fee before | Raw target | After EMA | After rate limit |
+|---|---|---|---|---|
+| 0 | 5 | — | — | **5** |
+| 1 | 5 | 30 | 8 | **8** (rate limit allows +10, but EMA only wants +3) |
+| 2 | 8 | 50 | 12 | **12** |
+| 5 | 21 | 80 | 27 | **27** |
+| 10 | 51 | 100 | 56 | **56** |
+| 15 | 75 | 100 | 78 | **78** |
+| 20 | 89 | 100 | 90 | **90** |
+| 25 | 95 | 100 | 96 | **96** |
+| 30 | 98 | 100 | 98 | **98** |
+
+The fee "earns" its way up through sustained volatility. An attacker can't spike it in one block. A real market regime change is reflected within a few seconds.
 
 ## The complete fee pipeline
 
 ```
 volatility σ (from part 5)
     │
-    ├→ compute_fee(σ):
-    │     if σ ≤ 15%:  return 5 bps
-    │     if 15% < σ < 75%:  smoothstep ramp 5→30
-    │     if 75% ≤ σ < 120%: smoothstep ramp 30→100
-    │     if σ ≥ 120%: return 100 bps
+    ├─ compute_fee(σ):
+    │    if σ ≤ 15%:           → 5 bps
+    │    if 15% < σ < 75%:     → smoothstep(σ−15/60) × 25 + 5
+    │    if 75% ≤ σ < 120%:    → smoothstep(σ−75/45) × 70 + 30
+    │    if σ ≥ 120%:          → 100 bps (capped)
     │
-    ├→ EMA smooth:  fee = 0.9×old + 0.1×raw
+    ├─ EMA smooth:
+    │    smoothed = 0.9 × old_smoothed + 0.1 × raw
     │
-    ├→ Rate limit:  clamp |fee_new − fee_old| ≤ 10 bps
+    ├─ Rate limit:
+    │    if |smoothed − current| > 10:  clamped to current ± 10
     │
-    └→ Update pool's current_fee_bps
+    └─ Update pool's current_fee_bps
 ```
 
-Every swap that hits the pool pays this dynamically computed fee. The fee changes happen automatically via the same mechanism — no governance vote, no admin key, no human in the loop.
-
-## What we now have
-
-Two numbers that respond to volatility:
-
-1. **A** (amplification) — controls curve shape: flat when calm, curved when volatile
-2. **fee** (swap fee) — controls LP compensation: cheap when calm, expensive when volatile
-
-Both are driven by the same signal (σ). Both update automatically. The remaining question: **how do they move together without breaking the pool?**
+Every trade pays this fee. The fee updates automatically with volatility — no governance vote, no admin key, no keeper negotiation. The same pipeline that measures volatility also sets the price of trading.
 
 ---
 

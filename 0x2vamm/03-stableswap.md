@@ -4,79 +4,102 @@
 
 ---
 
-## The idea
+## Where we are
 
-We have two formulas. One gives a straight line (constant sum) — great for stable pairs but drains completely. One gives a curved line (constant product) — never drains but has slippage everywhere.
+We have two formulas:
 
-What if we could **blend them**? And control the blend with a single knob?
+- **Constant product** (part 1): `x·y = k`. Never drains, but slippage everywhere — even for stable pairs.
+- **Constant sum** (part 2): `x + y = S`. Perfect 1:1 pricing, but drains completely if one token runs out.
 
-That knob is called **A** — the amplification coefficient. You can think of it as the "flatness dial."
+We want the best of both: **flat in the middle, curved at the edges.**
 
-```
-A = 10,000   →   behaves almost like a straight line (very flat, tight price)
-A = 100      →   moderate curve in the middle
-A = 1        →   behaves almost like constant product (curved everywhere)
-```
+## The amplification knob: A
 
-## What does "flat" mean visually?
+Curve Finance introduced a single parameter called the **amplification coefficient**, written as `A`. Think of it as a dial:
 
 ```
-y ↑                  y ↑                  y ↑
-  |   ·               |    ·                |   ···
-  |  ·                |  ·                  |  ·   ·
-  | ·                 | ·                   | ·     ·
-  |·                  |·                    |·       ·
-  └────────→ x        └──────────→ x        └──────────→ x
-
-  High A (flat)       Medium A             Low A (curved)
-  almost no           some slippage        lots of slippage
-  slippage near                    near the middle           everywhere
-  the middle
+A = 10,000   →   the curve is almost a straight line (very flat middle)
+A = 100      →   moderate bend — some curve, some flatness
+A = 1        →   the curve is nearly constant product (rounded everywhere)
 ```
 
-High A means the middle of the curve is very flat — like the straight line from part 2. This gives tight prices for normal trades. But near the edges the curve still bends, so the pool never drains completely.
+Higher A means "I'm confident these tokens should trade near the same price." Lower A means "I'm not confident — let the price move freely."
 
-Low A means the curve is rounded everywhere — like the constant product from part 1. More slippage, but the pool survives extreme price moves.
+## What A does to a pool, concretely
 
-## The actual formula
+Let's take a USDC/USDT pool with 100 of each. And a **$1 trade** (swapping 1 USDC for USDT).
 
-For two tokens, the StableSwap invariant (that's what Curve calls their formula) is:
+| A value | USDT you get for 1 USDC | Slippage | What this means |
+|---|---|---|---|
+| 10,000 | 0.9999 | ~0% | Near-perfect 1:1. Tight like constant sum. |
+| 1,000 | 0.9990 | 0.1% | Tiny slip. Still very tight. |
+| 100 | 0.9901 | 1% | Noticeable but small. |
+| 10 | 0.9091 | 9% | Significant slippage — the curve is bending. |
+| 1 | 0.5025 | 50% | Near constant product. Every trade moves price a lot. |
+
+**The same $1 trade, the same pool, wildly different outcomes** — all controlled by one number.
+
+Now let's see what happens with a **bigger trade of 50 USDC**:
+
+| A value | USDT you get for 50 USDC | Effective price per USDC | Slippage |
+|---|---|---|---|
+| 10,000 | 49.99 | 1.00 | ~0% |
+| 1,000 | 49.50 | 0.99 | 1% |
+| 100 | 45.45 | 0.91 | 9% |
+| 10 | 33.33 | 0.67 | 33% |
+| 1 | 25.00 | 0.50 | 50% |
+
+At A=10,000, you can trade $50 and barely move the price. At A=1, the same trade costs you half the value in slippage. **A controls how much the pool resists imbalance.**
+
+## The actual formula (and why you don't need to solve it)
+
+For two tokens, the StableSwap formula is:
 
 ```
 4A(x + y) + D = 4AD + D³ / (4xy)
 ```
 
-Don't worry about solving this — the computer does that with a technique called Newton-Raphson iteration (basically: guess, check, refine, repeat). What matters is **what it does**:
+- `x` and `y` are the reserves (how much of each token is in the pool)
+- `A` is the amplification — the knob we just explored
+- `D` is the "total deposit size" — roughly the total value inside the pool when perfectly balanced
 
-- When `x` and `y` are close to each other (pool is balanced), the `D³/(4xy)` term is small. The equation acts like `x + y = D` — flat, straight-line behavior.
-- When `x` and `y` are far apart (pool is imbalanced), the `D³/(4xy)` term grows large. The equation bends toward constant product — curved, protective behavior.
+**What D does:** when `x` and `y` are equal (balanced pool), `D = x + y`. The pool holds $D worth of value. When the pool gets imbalanced, D stays roughly the same — it represents the economic size.
 
-`D` represents the "economic size" of the pool. It's roughly what the total value would be if both sides were equal.
+**How the formula blends the two behaviors:**
 
-## The tradeoff of A
+- When `x ≈ y` (pool balanced): the `D³/(4xy)` term is small because `4xy ≈ D²`. The formula reduces to roughly `x + y = D` — constant sum, flat, zero slippage.
+- When `x >> y` or `y >> x` (pool imbalanced): the `4xy` term shrinks, making `D³/(4xy)` very large. This term dominates, and the formula bends toward `x·y = constant` — constant product, curved, protective.
 
-| A value | Curve shape | Good for | Bad for |
+**How the computer solves it:** the formula is used to calculate trade outputs. You know the current reserves, you know the input amount, and you need to find the output. The computer uses **Newton-Raphson** — a mathematical technique that starts with a guess and repeatedly refines it:
+
+```
+Start with a guess for the output
+Loop up to 64 times:
+    Check if the guess satisfies the formula
+    If yes → done
+    If no → make a better guess using the slope of the curve
+    If 64 iterations pass without converging → error (pool is in an extreme state)
+```
+
+This is the same technique calculators use for square roots. You don't need to understand it deeply — just know that it's a proven method that works entirely with integers.
+
+## The tradeoff of A — summarized
+
+| A value | Pool behavior | Best for | Danger |
 |---|---|---|---|
-| High (10,000+) | Very flat middle | Stable pairs, tight spreads | If one token loses its peg, LPs get wrecked fast |
-| Medium (100–1000) | Moderate curve | Correlated assets with some volatility | Not tight enough for stablecoins, not protective enough for volatile pairs |
-| Low (1–10) | Mostly curved | Volatile pairs, LP safety | High slippage, worse execution for traders |
+| High (1,000–10,000+) | Very flat around the peg | Stable pairs you're confident about | If the peg breaks, the flat curve drains LP capital fast |
+| Medium (100–1,000) | Moderate curve, some give | Correlated assets | Neither tight enough nor protective enough |
+| Low (1–10) | Rounded, high slippage | Volatile pairs, LP safety | Traders pay a lot, may go elsewhere |
 
-## The problem with fixed A
+## The problem nobody solved until now
 
-In every existing StableSwap pool (Curve on Ethereum, Saber on Solana), **A is chosen when the pool is created and never changes.**
+In every existing StableSwap pool — Curve on Ethereum, Saber on Solana — **A is picked once when the pool is created and never changes.**
 
-This is fine as long as the market behaves the way you expected. But:
+If you launched a USDC/USDT pool with A=2000 and USDC depegs to $0.90, the flat curve acts like a drain — it keeps trading 1:1 mechanically while the real world says 1:0.90. LPs get wrecked.
 
-- If you picked A = 2000 for a USDC/USDT pool and USDC depegs (loses its $1 value), the flat curve will drain your LP position before you can react.
-- If you picked A = 10 for safety and the pair stays stable for months, traders go elsewhere because your slippage is needlessly high.
+If you chose A=10 for safety and the pair stays perfectly stable for two years, you're charging traders 10% slippage for no reason. They go to a competitor.
 
-**The pool is always wrong for some market condition.** The A it needs changes over time, but the A it has is frozen.
-
-## The next question
-
-What if A could change automatically, based on how the market is actually behaving? That's what V-AMM does.
-
-But first we need to understand: what signal should control A?
+**The pool is always wrong for the market it's actually in.** A needs to change as conditions change. That's what V-AMM does. But first: what signal tells A to move?
 
 ---
 

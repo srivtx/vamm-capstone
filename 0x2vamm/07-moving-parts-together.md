@@ -8,117 +8,169 @@
 
 We now have two things that change based on σ (volatility):
 
-| When σ rises... | A does this | Fee does this |
+| When σ rises... | A (amplification) | Fee (swap cost) |
 |---|---|---|
-| Curve shape | **Lowers A** → curve steepens, more like CPMM | — |
-| LP protection | — | **Raises fee** → higher cut per trade |
-| Speed | Slow ramp (~1 hour) | Fast but capped (10 bps/slot) |
-| Purpose | Prevent LP drainage | Compensate LP risk |
+| **What changes** | Curve shape: how much slippage exists | Trading cost: how much LPs earn per trade |
+| **Direction** | A **drops** — curve steepens | Fee **rises** — more LP compensation |
+| **Speed** | Slow: ~1 hour to fully change | Fast but capped: 10 bps per slot (~4 sec to full range) |
+| **Purpose** | Prevent LP drainage (by making the pool act more like constant product) | Compensate LPs for the increased IL/LVR risk |
+| **Trigger** | Only when ΔA > 10% (ignore noise) | Every swap + every permissionless crank |
 
-They're both driven by the same signal but move at different speeds and serve different purposes. A changes the **shape of the pool** (how much slippage exists). Fee changes the **cost of trading** (how much LPs earn).
+They share the same signal but move at different speeds for different reasons. A changes slowly because sudden curve shape changes create arbitrage opportunities. Fees change faster because LPs need timely compensation when volatility spikes.
 
-## How A ramps
+## How A ramps (with concrete numbers)
 
-A doesn't jump. If the target shifts from 1000 to 100, the pool doesn't instantly switch. It **ramps** — slides linearly from old value to new value over time.
-
-```
-When a ramp is triggered:
-
-  a_start  = current A value (what the pool has right now)
-  a_target = new target A (what volatility says it should be)
-  end_slot = current_slot + 9000   (roughly 1 hour from now)
-
-Then, on every subsequent instruction that reads A:
-
-  elapsed = current_slot − start_slot
-  progress = elapsed / 9000
-  a_current = a_start + (a_target − a_start) × progress
-```
-
-Each block, A moves roughly 1/9000th of the way toward the target. Over 9000 slots (~1 hour on Solana), it reaches the target.
-
-A ramp is only triggered when the difference is significant — more than 10% of the current A. Minor fluctuations are ignored. You don't want the ramp constantly twitching.
-
-## Why ramping matters: the arbitrage problem
-
-Imagine A drops instantly from 1000 to 100:
+A never jumps. When the target changes, the pool sets up a linear ramp:
 
 ```
-BEFORE (A=1000, flat):          AFTER (A=100, curved):
-    y ↑                              y ↑
-      |····                            |   ···
-      |    ·                           |  ·   ·
-      |     ·                          | ·     ·
-      |      ·                         |·       ·
-      └────────→ x                     └──────────→ x
+A ramp is triggered when |target_A − current_target_A| > 10% × current_target_A
 
-Pool holds: 100 USDC, 1 SOL        Pool's internal price shifts
-Price: ~100 USDC/SOL               because the curve changed shape
+Setup:
+  a_start    = current A value (what the pool has now)
+  a_target   = new target A (what volatility says it should be)
+  start_slot = current slot number
+  end_slot   = start_slot + 9000   (roughly 1 hour)
+
+Then on every instruction that reads A:
+  elapsed    = current_slot − start_slot
+  progress   = elapsed / 9000      (goes from 0 to 1)
+  a_current  = a_start + (a_target − a_start) × progress
 ```
 
-An arbitrageur monitoring the chain sees the A-change transaction before it lands. They sandwich it:
+Concrete example: A drops from 1000 to 100:
 
-1. **Before:** Buy SOL from the pool at the old tight price (near $100)
-2. **After:** Sell SOL back to the pool (now at a wider spread) or sell elsewhere
-3. **Result:** The LP loses the price difference; the arbitrageur pockets it
+| Slot | Elapsed | Progress | A_current |
+|---|---|---|---|
+| 0 | 0 | 0.000 | 1000 |
+| 900 | 900 | 0.100 | 1000 − 900×0.10 = **910** |
+| 1800 | 1800 | 0.200 | **820** |
+| 2700 | 2700 | 0.300 | **730** |
+| 4500 | 4500 | 0.500 | **550** (halfway) |
+| 6750 | 6750 | 0.750 | **325** |
+| 9000 | 9000 | 1.000 | **100** (done) |
 
-With a ramp over 1 hour, there's no single block where the curve suddenly shifts. The transition is continuous — at any given moment, the price has moved only 0.01% from the previous moment. Arbitrageurs can't extract a meaningful profit from a change that small.
+At slot 900 (about 6 minutes in), A has only moved from 1000 to 910 — a 9% change. At any given moment, a trader sees a pool that's nearly identical to what it was 400ms ago. The ramp is designed to be invisible to individual trades.
 
-## How fees move
+Now the reverse: volatility drops, A rises from 100 back to 1000:
 
-Fees move faster than A but with a hard per-block cap:
+| Slot | Elapsed | Progress | A_current |
+|---|---|---|---|
+| 0 | 0 | 0.000 | 100 |
+| 4500 | 4500 | 0.500 | 100 + 900×0.50 = **550** |
+| 9000 | 9000 | 1.000 | **1000** |
+
+The ramp works both directions. No direction is privileged. The pool returns to flat-curve mode at exactly the same speed it left.
+
+## Why ramping matters: the sandwich attack
+
+If A jumped instantly from 1000 to 100:
 
 ```
-Each swap:
-  raw_fee = smoothstep(σ)         ← compute from current volatility
-  fee = 0.9×old + 0.1×raw         ← EMA smooth
-  if |fee − current_fee| > 10:    ← rate limit
-      fee = current_fee ± 10
-  current_fee = fee
+Before the jump (A=1000):
+  Pool: 100 USDC, 1 SOL
+  Price: ~100 USDC/SOL (very tight, almost no spread)
+  A trade of 10 USDC gets you ~0.0999 SOL
+
+After the jump (A=100):
+  Pool: 100 USDC, 1 SOL (same reserves!)
+  Price: still ~100 USDC/SOL, BUT the curve is now curved
+  A trade of 10 USDC gets you ~0.0909 SOL (more slippage)
 ```
 
-In practice, fees can change even if no swap happens — the `update_volatility` instruction can be called by anyone (we'll cover this in part 8). This lets keepers (bots that maintain the protocol) recalculate fees based on the current EWMA even during quiet periods.
+An arbitrageur watching the chain:
+1. Sees the A-change transaction in the mempool
+2. Sends their own transaction right before it: **buys SOL at the old tight A=1000 price**
+3. The A-change lands: curve steepens, SOL price adjusts
+4. Arbitrageur sells SOL back (or sells elsewhere at the true market price)
+5. **Profit = the price difference caused by the shape change**
 
-## What a full cycle looks like
+The LP absorbed the loss — the arbitrageur extracted value from the transition itself.
 
-Here's the pool going through calm → storm → calm:
+With a 9000-slot ramp, the transition takes 1 hour. Each individual block changes A by ~0.011%. The price impact of that change is microscopic — nowhere near enough to cover gas costs, let alone turn a profit. **The ramp eliminates the arbitrage window.**
+
+## How fees move (faster, but capped)
+
+Fees are updated on every swap and whenever `update_volatility` is called:
 
 ```
-CALM PERIOD (σ ≈ 5%)
-  A = A_max (e.g., 1000)  — flat curve, tight spreads
-  fee = 5 bps              — cheap trading
-  Lots of organic volume, LPs earning steady fees
+Every update:
+  σ         = read current EWMA variance, annualize
+  raw_fee   = compute_fee(σ)           → smoothstep mapping
+  ema_fee   = 0.9 × old_ema + 0.1 × raw   → smooth over ~10 updates
+  limited   = clamp(ema_fee, current − 10, current + 10)  → rate limit
+  current_fee = limited
+```
 
-VOLATILITY SPIKES (σ jumps to 40% in a few minutes)
+## The full cycle: calm → storm → calm
+
+Let's trace through a complete market cycle with a USDC/SOL pool (A_max = 1000):
+
+```
+━━━ CALM PERIOD (σ ≈ 5%, hour 0–10) ━━━
+  A = 1000 (flat curve, tight spreads)
+  fee = 5 bps (cheap)
+  Pool: balanced near 100 USDC, 1 SOL
+  Price: ~100 USDC/SOL
+  What's happening: organic volume, small trades, LPs collecting fees
+
+━━━ VOLATILITY ARRIVES (σ rises to 40% over ~2 minutes) ━━━
   EWMA variance rises over ~10 trades
-  Target A drops from 1000 → 400
-  A ramp begins: slides from 1000 to 400 over 1 hour
-  Raw fee rises: smoothstep says ~18 bps
-  EMA and rate limit: fee crawls from 5 → 10 → 15 → 18 bps
+  Raw fee from smoothstep: 40% → ~11 bps
+  EMA-smoothed fee: crawls 5 → 8 → 10 → 11 bps
 
-STORM (σ ≥ 100%, sustained for hours)
-  Target A → ~1 (near CPMM territory)
-  A ramp continues toward 1
-  Fee → 100 bps (capped)
-  Curve is steep: high slippage, LPs protected
-  Fee is high: compensates LP risk, deters toxic flow
+  Target A: A_max × (1 − k×0.40) = 1000 × (1 − 2×0.40)
+          = 1000 × 0.20 = 200
+  ΔA = 1000 − 200 = 800, which is 80% of current → exceeds 10% threshold
+  A ramp triggered: 1000 → 200 over 9000 slots
 
-RECOVERY (σ drops back to 10%)
-  Target A rises back toward A_max
-  A ramp reverses: slides back up over 1 hour
-  Fee slides back down: 100 → 90 → ... → 10 → 5 bps
+  After 30 minutes (4500 slots): A = 600, fee = ~15 bps
+  Pool is still mostly flat but starting to curve
+
+━━━ STORM (σ ≥ 100%, sustained for 4 hours) ━━━
+  After 1 hour: A = 200, fee = ~30 bps
+  But σ keeps climbing...
+
+  Target A: 1000 × (1 − 2×1.0) → negative → clamped to A=1
+  New ramp: A=200 → 1 over another 9000 slots
+
+  Fee: smoothstep for σ=100% → ~75 bps
+  EMA and rate limit push it: 30 → 40 → 50 → ... → 75 bps
+
+  After 1 more hour: A = 1 (near CPMM), fee = 75 bps
+  Pool: trades have significant slippage, LPs are protected
+  Fee: meaningful compensation for the risk
+
+  σ keeps rising to 150% → fee capped at 100 bps
+  A stays at 1 (minimum)
+
+━━━ RECOVERY (σ drops back to ~10%) ━━━
+  EWMA variance decays (σ stays low for many trades)
+  Raw fee: 10% → 5 bps
+  Fee slides down: 100 → 90 → ... → 10 → 5 bps (rate limit caps the descent too)
+
+  Target A: 1000 × (1 − 2×0.10) = 1000 × 0.80 = 800
+  ΔA = 800 − 1 = 799, which is 79,900% → exceeds threshold
+  A ramp triggered: 1 → 800 over 9000 slots
+
+  Market stays calm. After 1 hour: A = 800, fee = 5 bps
+  Pool is mostly flat again, spreads are tight, volume returns.
+
+  σ stays at 5% for a while. Target A rises to 1000.
+  Final ramp: 800 → 1000. After 1 more hour: A = 1000, fee = 5 bps.
+  Pool is back to calm-mode state.
 ```
 
-At no point does anything jump. The pool breathes — it responds to the market at the market's pace, not faster.
+**At no point does anything jump.** The pool breathes with the market — it takes hours to fully transition between regimes, and every individual block sees only a microscopic change.
 
-## The two safeties summarized
+## Safety summary
 
-| Safety mechanism | What it prevents | How |
-|---|---|---|
-| **A ramp** (9000 slots) | Curve-transition arbitrage | A changes 0.01% per slot — no profitable arb window |
-| **Fee rate limit** (10 bps/slot) | Fee manipulation | Attacker can't spike fees in one block |
-| **EMA smoothing** (α=0.9) | Noise from single large trades | Fee responds to persistent trends, not one-off spikes |
-| **Volatility buckets** | EWMA manipulation | Cross-reference: if EWMA says 500% but buckets show 3 trades, something's wrong |
+| Mechanism | Speed | What it prevents | Attack surface closed |
+|---|---|---|---|
+| **A ramp** | ~1 hour (9000 slots) | Curve-transition sandwich arbitrage | 0.01% A change per slot = no profit |
+| **Fee rate limit** | 10 bps/slot (~4 sec full range) | Fee spike manipulation | Attacker needs 10+ blocks to max out fees |
+| **EMA smoothing** | ~10-update half-life | Single-trade fee whipsaw | Fee responds to trends, not noise |
+| **Volatility buckets** | 15-min + 1-hour windows | EWMA manipulation via wash trading | Cross-reference catches EWMA/bucket mismatch |
+| **10% A threshold** | Only triggers on meaningful change | Constant micro-ramps from noise | Minor σ wobbles don't trigger ramps |
 
 ---
 

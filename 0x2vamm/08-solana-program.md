@@ -14,7 +14,7 @@ Our V-AMM is one program, deployed at this address:
 75yCYNeZrSoVKWk5kFti7tRpRacZHptmAqtPwfc9U4Zt
 ```
 
-It's written in Rust using a framework called **Anchor**, which handles the boring parts (account validation, serialization, error handling) so we can focus on the actual logic.
+It's written in Rust using a framework called **Anchor**. Think of Anchor like React for web dev — it handles the boilerplate (validating that the right accounts are passed in, serializing data, routing instructions to handlers) so you write the actual logic. Without Anchor, a Solana program is mostly account-deserialization code. With Anchor, it's mostly business logic.
 
 ## What the program can do: 6 instructions
 
@@ -93,6 +93,12 @@ Token transfers on Solana need a signer — someone who authorizes the move. In 
 - **Pool Authority PDA signs** for the pool's tokens: withdrawing from vaults, minting new LP tokens
 
 The Pool Authority is a PDA that only the program can sign for. There's no admin key that could drain the vaults. The program itself controls the pool's money, following the rules in the code.
+
+## Two Solana concepts worth knowing
+
+**Rent:** Every account on Solana costs a small amount of SOL to store. The bigger the account, the more rent. This is why account sizes are carefully calculated — `PoolState` is ~416 bytes, `VolatilityState` is ~387 bytes. The `initialize_pool` instruction pays this rent upfront (the caller provides the SOL). If an account doesn't have enough SOL for rent, the runtime deletes it. V-AMM's PDAs are funded during initialization and topped up if needed.
+
+**Compute Units (CU):** Every transaction gets a compute budget — a limit on how many operations it can do. Solana gives each transaction 200,000 CU by default (can be raised to 1,400,000). The StableSwap Newton solver is capped at 64 iterations so it never exceeds the budget. The volatility updates are ~300–500 CU per swap, leaving plenty of room for the token transfers and state updates. If an instruction runs out of CU, the entire transaction reverts.
 
 ## What happens during a swap (the full picture)
 
