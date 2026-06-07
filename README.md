@@ -15,8 +15,9 @@ A volatility-adaptive automated market maker on Solana. The curve shape and fee 
 
 <p align="center">
   <a href="#how-it-works">How it works</a> ·
-  <a href="#a-handler">Code</a> ·
-  <a href="#architecture">Architecture</a> ·
+  <a href="0x2vamm/">0→V-AMM</a> ·
+  <a href="ARCHITECTURE.md">Architecture</a> ·
+  <a href="reports/">Reports</a> ·
   <a href="#install">Install</a>
 </p>
 
@@ -67,7 +68,9 @@ pub fn swap(
 }
 ```
 
-Plain Anchor handlers. No custom dispatch, no derive wizardry. Full diagrams in [`ARCHITECTURE.md`](ARCHITECTURE.md).
+Plain Anchor handlers. No custom dispatch, no derive wizardry.
+
+[`0x2vamm/`](0x2vamm/) takes you from constant product to the full V-AMM in 8 short steps. [`ARCHITECTURE.md`](ARCHITECTURE.md) has the complete diagrams. [`reports/`](reports/) has deep dives on the math, volatility engine, and adversarial analysis.
 
 ## Architecture
 
