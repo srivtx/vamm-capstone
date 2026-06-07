@@ -82,6 +82,30 @@ The market has two basic states. The pool should behave differently in each:
 | **Pool should do with A** | High A — flat curve, tight price | Low A — curved, protective |
 | **Pool should do with fee** | Low fee (5 bps) — attract volume | High fee (30–100 bps) — compensate LP risk |
 
+```mermaid
+flowchart LR
+    subgraph CALM["Calm Market (σ ≤ 15%)"]
+        C1["low volatility"]
+        C2["LP risk: low"]
+        C3["want: HIGH A, LOW fee"]
+    end
+
+    subgraph TRANSITION["Transition"]
+        T1["σ rises"]
+        T2["A ramps down over 1 hr"]
+        T3["fee slides up 10 bps/slot"]
+    end
+
+    subgraph VOLATILE["Volatile Market (σ ≥ 75%)"]
+        V1["high volatility"]
+        V2["LP risk: high (IL + LVR)"]
+        V3["want: LOW A, HIGH fee"]
+    end
+
+    CALM -->|"volatility spike"| TRANSITION -->|"sustained chaos"| VOLATILE
+    VOLATILE -.->|"market recovers"| TRANSITION -.->|"returns to calm"| CALM
+```
+
 The signal that tells us which regime we're in is **volatility**. If we can measure it continuously:
 
 - **Volatility rises** → lower A (curve steepens, protects LPs), raise fees (compensate for risk)

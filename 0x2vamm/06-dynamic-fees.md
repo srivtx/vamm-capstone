@@ -72,6 +72,29 @@ Where `t` goes from 0 (start of a band) to 1 (end of a band). Let's see what thi
 
 Notice: the fee rises gently at the start of each band, steepens in the middle, and flattens again at the end. This S-curve has a key property: **zero slope at the boundaries.** At exactly 15%, the fee isn't twitching — it's stable. At exactly 75%, the transition between bands is seamless. No cliffs, no thresholds, no exploit windows.
 
+Here's the full fee curve across the volatility spectrum:
+
+```mermaid
+flowchart LR
+    subgraph ZONE1["Stable σ ≤ 15%"]
+        Z1["fee = 5 bps<br/>flat — no change"]
+    end
+
+    subgraph ZONE2["Transition 15% → 75%"]
+        Z2["smoothstep ramp<br/>5 → 30 bps<br/>S-curve, gentle start/end"]
+    end
+
+    subgraph ZONE3["Transition 75% → 120%"]
+        Z3["smoothstep ramp<br/>30 → 100 bps<br/>steepest in middle"]
+    end
+
+    subgraph ZONE4["Extreme σ ≥ 120%"]
+        Z4["fee = 100 bps<br/>flat — capped"]
+    end
+
+    ZONE1 --> ZONE2 --> ZONE3 --> ZONE4
+```
+
 ## EMA smoothing: don't twitch on every trade
 
 Raw volatility (σ) can spike on a single large trade. If we fed raw σ directly into smoothstep, the fee would bounce around constantly. So we run it through **another EWMA** (same technique we used for variance in part 5):
