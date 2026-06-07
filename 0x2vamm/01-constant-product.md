@@ -87,15 +87,16 @@ This shows the pool is **self-correcting**. When SOL gets expensive (too much US
 
 ## Why this shape matters
 
-Imagine a graph where:
-- The x-axis (horizontal) = how much USDC is in the pool
-- The y-axis (vertical) = how much SOL is in the pool
+Plot every possible state of the pool on a graph. The axes are the same as what we've been measuring all along:
 
-Every possible state of the pool must satisfy `USDC × SOL = 100`. Here are points that satisfy this, plotted as a curve:
+- **Horizontal (x-axis):** USDC in the pool — goes from 0 to beyond 200 as people keep buying SOL
+- **Vertical (y-axis):** SOL in the pool — starts at 1, shrinks toward 0 as SOL gets bought up
+
+Every point on the curve satisfies `USDC × SOL = 100`. The orange dots in the graph below mark the exact pool states we walked through in the trades above:
 
 ![x*y=100 constant product curve](graphs/01-constant-product.svg)
 
-In table form:
+The same data in table form — each row is a point on the curve:
 
 | USDC | SOL | k check | What this means |
 |---|---|---|---|
