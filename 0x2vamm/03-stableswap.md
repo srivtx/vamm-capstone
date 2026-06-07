@@ -1,57 +1,82 @@
 # 03 — StableSwap
 
-> *A dial between constant sum and constant product.*
+> *A dial that blends flat and curved.*
 
 ---
 
 ## The idea
 
-Michael Egorov (Curve Finance, 2019) asked: what if we have one parameter that smoothly blends the two invariants?
+We have two formulas. One gives a straight line (constant sum) — great for stable pairs but drains completely. One gives a curved line (constant product) — never drains but has slippage everywhere.
 
-The answer is the **amplification coefficient A**.
+What if we could **blend them**? And control the blend with a single knob?
+
+That knob is called **A** — the amplification coefficient. You can think of it as the "flatness dial."
 
 ```
-A → ∞   →   behaves like constant sum (flat, tight spread)
-A → 0   →   behaves like constant product (curved, never drains)
+A = 10,000   →   behaves almost like a straight line (very flat, tight price)
+A = 100      →   moderate curve in the middle
+A = 1        →   behaves almost like constant product (curved everywhere)
 ```
 
-## The invariant
+## What does "flat" mean visually?
 
-For two tokens:
+```
+y ↑                  y ↑                  y ↑
+  |   ·               |    ·                |   ···
+  |  ·                |  ·                  |  ·   ·
+  | ·                 | ·                   | ·     ·
+  |·                  |·                    |·       ·
+  └────────→ x        └──────────→ x        └──────────→ x
+
+  High A (flat)       Medium A             Low A (curved)
+  almost no           some slippage        lots of slippage
+  slippage near                    near the middle           everywhere
+  the middle
+```
+
+High A means the middle of the curve is very flat — like the straight line from part 2. This gives tight prices for normal trades. But near the edges the curve still bends, so the pool never drains completely.
+
+Low A means the curve is rounded everywhere — like the constant product from part 1. More slippage, but the pool survives extreme price moves.
+
+## The actual formula
+
+For two tokens, the StableSwap invariant (that's what Curve calls their formula) is:
 
 ```
 4A(x + y) + D = 4AD + D³ / (4xy)
 ```
 
-`D` is the total deposit size (what the sum would be at equilibrium). `A` is the amplification knob.
+Don't worry about solving this — the computer does that with a technique called Newton-Raphson iteration (basically: guess, check, refine, repeat). What matters is **what it does**:
 
-The magic: near equilibrium (x ≈ y), the `D³/(4xy)` term is small, and the equation approximates `x + y = D` — constant sum behavior, near-zero slippage. Far from equilibrium, the product term dominates — the curve bends like constant product to prevent drainage.
+- When `x` and `y` are close to each other (pool is balanced), the `D³/(4xy)` term is small. The equation acts like `x + y = D` — flat, straight-line behavior.
+- When `x` and `y` are far apart (pool is imbalanced), the `D³/(4xy)` term grows large. The equation bends toward constant product — curved, protective behavior.
 
-## What A controls
+`D` represents the "economic size" of the pool. It's roughly what the total value would be if both sides were equal.
 
-```mermaid
-graph TB
-    subgraph AMP["Amplification A"]
-        AH["A = 10,000 (high)<br/>very flat near peg<br/>tight spreads"]
-        AM["A = 100 (medium)<br/>moderate curve<br/>some slippage"]
-        AL["A = 1 (low)<br/>near-constant product<br/>high slippage but safe"]
-    end
+## The tradeoff of A
 
-    subgraph TRADEOFF["The Tradeoff"]
-        T1["high A → better for LPs in calm markets<br/>but vulnerable if peg breaks"]
-        T2["low A → protects LPs during volatility<br/>but worse execution for traders"]
-    end
+| A value | Curve shape | Good for | Bad for |
+|---|---|---|---|
+| High (10,000+) | Very flat middle | Stable pairs, tight spreads | If one token loses its peg, LPs get wrecked fast |
+| Medium (100–1000) | Moderate curve | Correlated assets with some volatility | Not tight enough for stablecoins, not protective enough for volatile pairs |
+| Low (1–10) | Mostly curved | Volatile pairs, LP safety | High slippage, worse execution for traders |
 
-    AMP --> TRADEOFF
-```
+## The problem with fixed A
 
-## Why this matters
+In every existing StableSwap pool (Curve on Ethereum, Saber on Solana), **A is chosen when the pool is created and never changes.**
 
-StableSwap pools dominate stablecoin trading on Ethereum because they offer the best of both worlds for pegged assets. USDC/USDT pools operate at very high A, giving traders near-zero slippage and LPs healthy volume.
+This is fine as long as the market behaves the way you expected. But:
 
-But A is **fixed at pool creation**. If USDC depegs, LPs in a high-A pool get wrecked — the pool drains along the flat part of the curve before anyone can adjust.
+- If you picked A = 2000 for a USDC/USDT pool and USDC depegs (loses its $1 value), the flat curve will drain your LP position before you can react.
+- If you picked A = 10 for safety and the pair stays stable for months, traders go elsewhere because your slippage is needlessly high.
 
-**The question: what if A could change?**
+**The pool is always wrong for some market condition.** The A it needs changes over time, but the A it has is frozen.
+
+## The next question
+
+What if A could change automatically, based on how the market is actually behaving? That's what V-AMM does.
+
+But first we need to understand: what signal should control A?
 
 ---
 
