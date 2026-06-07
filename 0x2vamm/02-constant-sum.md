@@ -121,23 +121,7 @@ We want a formula that **blends** the two behaviors:
 
 Visually, here are the three curves side by side. Imagine the x-axis is USDC and the y-axis is USDT, both starting at 100 each:
 
-```mermaid
-graph TB
-    subgraph CS["Constant Sum (x + y = 200)"]
-        direction LR
-        CS1["diagonal line from (0,200) to (200,0)<br/>price = 1:1 always<br/>touches axes → drains completely"]
-    end
-
-    subgraph CP["Constant Product (x × y = 10,000)"]
-        direction LR
-        CP1["rounded curve, never touches axes<br/>price moves with every trade<br/>slippage everywhere"]
-    end
-
-    subgraph IDEAL["Ideal Blended Curve (StableSwap)"]
-        direction LR
-        ID1["flat diagonal in the middle<br/>(acts like constant sum)<br/>curves out at the edges<br/>(acts like constant product)<br/>never touches axes"]
-    end
-```
+![constant sum vs constant product vs ideal stableswap curve](graphs/02-three-curves.svg)
 
 At the center (100 USDC, 100 USDT), all three curves give the same price — 1:1. The difference is what happens when you move away from center:
 

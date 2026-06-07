@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" style="background:#0d1117;border-radius:8px">
+  <!-- A = 10,000 (high) -->
+  <line x1="20" y1="130" x2="136" y2="14" stroke="#8b949e" stroke-width="1"/>
+  <line x1="20" y1="130" x2="20" y2="10" stroke="#8b949e" stroke-width="1"/>
+  <polyline points="
+    22,126 30,115 45,100 65,85 90,75 120,68 145,64
+  " fill="none" stroke="#3fb950" stroke-width="3"/>
+  <text x="78" y="8" fill="#3fb950" font-size="12" text-anchor="middle" font-weight="bold">A = 10,000</text>
+  <text x="78" y="150" fill="#8b949e" font-size="10" text-anchor="middle">USDC</text>
+  <text x="78" y="22" fill="#8b949e" font-size="10" text-anchor="middle">nearly flat diagonal</text>
+  <text x="78" y="36" fill="#8b949e" font-size="10" text-anchor="middle">tight spreads</text>
+
+  <!-- A = 100 (medium) -->
+  <line x1="180" y1="130" x2="320" y2="130" stroke="#8b949e" stroke-width="1"/>
+  <line x1="180" y1="130" x2="180" y2="10" stroke="#8b949e" stroke-width="1"/>
+  <polyline points="
+    182,124 188,110 196,95 206,82 218,72 234,64 252,58 274,54 298,52 316,51
+  " fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+  <text x="250" y="8" fill="#58a6ff" font-size="12" text-anchor="middle" font-weight="bold">A = 100</text>
+  <text x="250" y="22" fill="#8b949e" font-size="10" text-anchor="middle">flat near center, curves at edges</text>
+  <text x="250" y="36" fill="#8b949e" font-size="10" text-anchor="middle">balanced blend</text>
+
+  <!-- A = 1 (low, near CPMM) -->
+  <line x1="340" y1="130" x2="480" y2="130" stroke="#8b949e" stroke-width="1"/>
+  <line x1="340" y1="130" x2="340" y2="10" stroke="#8b949e" stroke-width="1"/>
+  <polyline points="
+    343,122 350,105 358,90 370,78 385,70 405,65 430,62 460,60 478,59
+  " fill="none" stroke="#f0883e" stroke-width="2"/>
+  <text x="410" y="8" fill="#f0883e" font-size="12" text-anchor="middle" font-weight="bold">A = 1</text>
+  <text x="410" y="22" fill="#8b949e" font-size="10" text-anchor="middle">curved everywhere</text>
+  <text x="410" y="36" fill="#8b949e" font-size="10" text-anchor="middle">near constant product</text>
+</svg>

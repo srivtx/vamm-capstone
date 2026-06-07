@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" style="background:#0d1117;border-radius:8px">
+  <!-- Left panel: Constant Sum -->
+  <line x1="20" y1="130" x2="136" y2="14" stroke="#3fb950" stroke-width="2"/>
+  <line x1="20" y1="130" x2="160" y2="130" stroke="#8b949e" stroke-width="1"/>
+  <line x1="20" y1="130" x2="20" y2="10" stroke="#8b949e" stroke-width="1"/>
+  <text x="78" y="150" fill="#8b949e" font-size="10" text-anchor="middle">USDC</text>
+  <text x="6" y="74" fill="#8b949e" font-size="10" transform="rotate(-90,6,74)">USDT</text>
+  <text x="78" y="8" fill="#3fb950" font-size="12" text-anchor="middle" font-weight="bold">Constant Sum</text>
+  <text x="78" y="22" fill="#8b949e" font-size="10" text-anchor="middle">x + y = 200</text>
+  <text x="100" y="90" fill="#3fb950" font-size="9">straight diagonal</text>
+  <text x="100" y="104" fill="#3fb950" font-size="9">touches axes → drains</text>
+  <!-- Circle at (0,200) -->
+  <circle cx="20" cy="14" r="3" fill="#f85149"/>
+  <text x="24" y="16" fill="#f85149" font-size="9">drained!</text>
+
+  <!-- Center panel: Constant Product -->
+  <line x1="180" y1="130" x2="320" y2="130" stroke="#8b949e" stroke-width="1"/>
+  <line x1="180" y1="130" x2="180" y2="10" stroke="#8b949e" stroke-width="1"/>
+  <polyline points="
+    183,120 186,100 190,80 196,60 202,50 210,42 220,36 232,32 246,30 262,28 280,27 298,26 316,25
+  " fill="none" stroke="#58a6ff" stroke-width="2"/>
+  <text x="250" y="8" fill="#58a6ff" font-size="12" text-anchor="middle" font-weight="bold">Constant Product</text>
+  <text x="250" y="22" fill="#8b949e" font-size="10" text-anchor="middle">x · y = 10,000</text>
+  <text x="250" y="90" fill="#58a6ff" font-size="9">rounded everywhere</text>
+  <text x="250" y="104" fill="#58a6ff" font-size="9">never touches axes</text>
+
+  <!-- Right panel: Ideal Blended (StableSwap) -->
+  <line x1="340" y1="130" x2="480" y2="130" stroke="#8b949e" stroke-width="1"/>
+  <line x1="340" y1="130" x2="340" y2="10" stroke="#8b949e" stroke-width="1"/>
+  <!-- Blended curve: flat in middle, curved at edges -->
+  <polyline points="
+    343,122 348,105 355,85 365,68 380,56 400,48 420,45 440,44 460,43 475,42
+  " fill="none" stroke="#d2a8ff" stroke-width="2"/>
+  <!-- Highlight the flat middle -->
+  <line x1="390" y1="52" x2="440" y2="44" stroke="#d2a8ff" stroke-width="3" opacity="0.6"/>
+  <text x="410" y="8" fill="#d2a8ff" font-size="12" text-anchor="middle" font-weight="bold">Ideal (StableSwap)</text>
+  <text x="410" y="22" fill="#8b949e" font-size="10" text-anchor="middle">flat middle, curved edges</text>
+  <text x="380" y="62" fill="#d2a8ff" font-size="9">↖ curved edge</text>
+  <text x="430" y="38" fill="#d2a8ff" font-size="9">flat middle ↗</text>
+  <text x="460" y="52" fill="#d2a8ff" font-size="9">curved edge ↘</text>
+</svg>

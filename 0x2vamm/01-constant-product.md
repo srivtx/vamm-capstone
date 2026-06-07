@@ -91,27 +91,9 @@ Imagine a graph where:
 - The x-axis (horizontal) = how much USDC is in the pool
 - The y-axis (vertical) = how much SOL is in the pool
 
-Every possible state of the pool must satisfy `USDC × SOL = 100`. Here are points that satisfy this, and what they look like on a graph (x = USDC, y = SOL):
+Every possible state of the pool must satisfy `USDC × SOL = 100`. Here are points that satisfy this, plotted as a curve:
 
-```mermaid
-graph TB
-    subgraph CURVE["x × y = 100"]
-        direction LR
-        P1["(10, 10) — SOL is cheap<br/>Price = 1 USDC/SOL"]
-        P2["(50, 2) — getting balanced<br/>Price = 25 USDC/SOL"]
-        P3["(100, 1) — starting point<br/>Price = 100 USDC/SOL"]
-        P4["(200, 0.5) — SOL expensive<br/>Price = 400 USDC/SOL"]
-        P5["(1000, 0.1) — near drain<br/>Price = 10,000 USDC/SOL"]
-    end
-
-    subgraph PROPERTIES["Curve Properties"]
-        PR1["never touches axes<br/>→ never fully drains"]
-        PR2["rounded everywhere<br/>→ price always moves"]
-        PR3["self-correcting<br/>→ trades push back to center"]
-    end
-
-    CURVE --> PROPERTIES
-```
+![x*y=100 constant product curve](graphs/01-constant-product.svg)
 
 In table form:
 

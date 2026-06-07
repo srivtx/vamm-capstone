@@ -93,22 +93,7 @@ This is the same technique calculators use for square roots. You don't need to u
 
 How the curve shape changes with A — same pool (100 USDC, 100 USDT), same starting point, different A values:
 
-```mermaid
-graph TB
-    subgraph A_HIGH["A = 10,000 (high)"]
-        AH1["nearly straight diagonal<br/>~1:1 for all reasonable trades<br/>like constant sum"]
-    end
-
-    subgraph A_MID["A = 100 (medium)"]
-        AM1["mostly flat in middle<br/>starts curving past ~20% imbalance<br/>balanced blend"]
-    end
-
-    subgraph A_LOW["A = 1 (low)"]
-        AL1["rounded everywhere<br/>like constant product<br/>slippage on every trade"]
-    end
-
-    A_HIGH -->|"turn A down"| A_MID -->|"turn A down more"| A_LOW
-```
+![A=10000 vs A=100 vs A=1 curve shapes](graphs/03-a-values.svg)
 
 ## The problem nobody solved until now
 

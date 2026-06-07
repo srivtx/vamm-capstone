@@ -74,26 +74,7 @@ Notice: the fee rises gently at the start of each band, steepens in the middle, 
 
 Here's the full fee curve across the volatility spectrum:
 
-```mermaid
-flowchart LR
-    subgraph ZONE1["Stable σ ≤ 15%"]
-        Z1["fee = 5 bps<br/>flat — no change"]
-    end
-
-    subgraph ZONE2["Transition 15% → 75%"]
-        Z2["smoothstep ramp<br/>5 → 30 bps<br/>S-curve, gentle start/end"]
-    end
-
-    subgraph ZONE3["Transition 75% → 120%"]
-        Z3["smoothstep ramp<br/>30 → 100 bps<br/>steepest in middle"]
-    end
-
-    subgraph ZONE4["Extreme σ ≥ 120%"]
-        Z4["fee = 100 bps<br/>flat — capped"]
-    end
-
-    ZONE1 --> ZONE2 --> ZONE3 --> ZONE4
-```
+![smoothstep dynamic fee curve](graphs/06-fee-curve.svg)
 
 ## EMA smoothing: don't twitch on every trade
 
