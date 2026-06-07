@@ -30,3 +30,29 @@ Thumbs.db
 # OpenCode
 .claude/
 .next/
+
+# Unrelated research / ideation
+AI_INFRASTRUCTURE_RESEARCH.md
+COCKROACH_JANTA_PARTY_INFRA_RESEARCH.md
+DEEP_CAPSTONE_IDEAS.md
+IL_PROTECTED_AMM_ADVERSARIAL_ANALYSIS.md
+IL_PROTECTION_VIABILITY_REPORT.md
+IL_Protection_Research_Report.md
+MEME_TOKEN_ALLOCATION_TRUST_FRAMEWORK.md
+ONCHAIN_IDEAS.md
+ONCHAIN_IDEAS_V2.md
+ONCHAIN_IDEAS_V3.md
+SOLANA_MEME_TOKEN_ECOSYSTEM_REPORT.md
+SORTIE_DEVTOOLS_ARCHITECTURE.md
+SWARM_RESEARCH_REPORT.md
+TECHNICAL_VALIDATION.md
+TECHNICAL_VALIDATION_RESULTS.md
+VAMM_ARCHITECTURE_DIAGRAM.md
+amm-competitive-landscape-report.md
+amm_il_analysis.md
+competitor_landscape.md
+il_protection_analysis.py
+il_protection_report.md
+replicaofdetails.md
+sortie-devtools/
+vamm-full-source.md
