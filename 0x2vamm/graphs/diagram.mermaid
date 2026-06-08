@@ -1,0 +1,46 @@
+graph TB
+    USER["User / Trader / LP"]
+
+    subgraph VAMM["vamm program"]
+        INIT["initialize_pool"]
+        SWAP["swap"]
+        ADD["add_liquidity"]
+        REMOVE["remove_liquidity"]
+        UPDV["update_volatility"]
+        UPDC["update_curve"]
+        D["StableSwap"]
+        EWMA["EWMA engine"]
+        FEE["fee synthesis"]
+        PS["PoolState"]
+        VS["VolatilityState"]
+        POS["PositionState"]
+    end
+
+    SPL["SPL Token"]
+    CLOCK["Clock Sysvar"]
+
+    USER --> SWAP
+    USER --> ADD
+    USER --> REMOVE
+    INIT --> PS
+    INIT --> VS
+    SWAP --> D
+    SWAP --> EWMA
+    SWAP --> PS
+    SWAP --> VS
+    UPDV --> EWMA
+    UPDV --> FEE
+    UPDV --> PS
+    UPDC --> PS
+    ADD --> PS
+    REMOVE --> PS
+    SWAP --> SPL
+    ADD --> SPL
+    REMOVE --> SPL
+    SWAP --> CLOCK
+
+    style VAMM fill:#0d1117,stroke:#30363d,color:#e6edf3
+    style UPDV fill:#0d1f0d,stroke:#1a3a1a,color:#4ade80
+    style UPDC fill:#0d1f0d,stroke:#1a3a1a,color:#4ade80
+    style SPL fill:#161b22,stroke:#30363d,color:#8b949e
+    style CLOCK fill:#161b22,stroke:#30363d,color:#8b949e
