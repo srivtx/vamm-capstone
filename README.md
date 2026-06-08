@@ -21,10 +21,6 @@ A volatility-adaptive automated market maker on Solana. The curve shape and fee 
   <a href="#install">Install</a>
 </p>
 
-<p align="center">
-  <img src="0x2vamm/graphs/arch.png" alt="architecture" width="720"/>
-</p>
-
 ---
 
 ## How it works
@@ -50,6 +46,10 @@ A = A_max(1 − kσ)   fee = smoothstep(σ)
      ▼                  ▼
 ramp 9000 slots     EMA + 10 bps cap
 ```
+
+<p align="center">
+  <img src="0x2vamm/graphs/arch.png" alt="architecture" width="720"/>
+</p>
 
 ## A handler
 
