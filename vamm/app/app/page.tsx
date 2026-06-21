@@ -91,11 +91,11 @@ export default function HomePage() {
               <div className="coin-entrance coin-entrance--right hidden lg:block absolute right-[-100px] bottom-[8%] z-0">
                 <Coin variant="usdt" size={85} />
               </div>
-              {/* Mobile: same full coins as desktop (3D perspective auto-disabled on mobile via CSS) */}
-              <div className="coin-entrance coin-entrance--left lg:hidden absolute left-[-28px] top-[20%] z-20">
+              {/* Mobile: coins hidden on very small screens (≤420px) — only ambient glows show */}
+              <div className="hidden min-[421px]:flex coin-entrance coin-entrance--left lg:hidden absolute left-[-28px] top-[20%] z-20">
                 <Coin variant="usdc" size={85} />
               </div>
-              <div className="coin-entrance coin-entrance--right lg:hidden absolute right-[-28px] bottom-[16%] z-20">
+              <div className="hidden min-[421px]:flex coin-entrance coin-entrance--right lg:hidden absolute right-[-28px] bottom-[16%] z-20">
                 <Coin variant="usdt" size={72} />
               </div>
               <div className="relative z-10">
