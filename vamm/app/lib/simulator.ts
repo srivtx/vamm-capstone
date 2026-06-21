@@ -90,7 +90,7 @@ export class PoolSimulator {
   protocolFeesA: bigint;
   protocolFeesB: bigint;
 
-  lastSwapSlot: number;
+  lastSwapSlot: bigint;
   lastSwapPriceX64: bigint;
 
   aMax: bigint;
@@ -101,7 +101,7 @@ export class PoolSimulator {
   lastTick: number;
 
   /* ─── sim metadata ─── */
-  slot: number;
+  slot: bigint;
   history: Snapshot[];
 
   /* ─── constructor ─── */
@@ -123,7 +123,7 @@ export class PoolSimulator {
     this.protocolFeesA = 0n;
     this.protocolFeesB = 0n;
 
-    this.lastSwapSlot = 0;
+    this.lastSwapSlot = 0n;
     this.lastSwapPriceX64 = 0n;
 
     this.aMax = cfg.aMax;
@@ -321,7 +321,7 @@ export class PoolSimulator {
       this.curveAStart = this.curveACurrent;
       this.curveATarget = targetA;
       this.rampStartSlot = this.slot;
-      this.rampEndSlot = this.slot + 9000; // ~1 hour
+      this.rampEndSlot = this.slot + 9000n; // ~1 hour
       rampStarted = true;
     }
 
@@ -343,7 +343,7 @@ export class PoolSimulator {
   /* ─── advance slot ─── */
 
   advanceSlots(n: number): void {
-    this.slot += n;
+    this.slot += BigInt(n);
   }
 
   /* ─── reset ─── */
