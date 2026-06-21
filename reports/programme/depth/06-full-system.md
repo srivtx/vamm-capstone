@@ -168,14 +168,17 @@ Charlie calls `swap(amount_in=100, min_amount_out=0.9, is_a_to_b=true)`.
    [swap.rs:90-99]
 
 4. StableSwap output:
-   D = compute_d([1000, 10], 1000) ≈ 1010
+   D = compute_d([1000, 10], 1000) ≈ 998.07
        [math/mod.rs: StableSwap::compute_d()]
-   
-   New reserve A = 1000 + 99.95 = 1099.95
-   New reserve B = compute_y(1099.95, 1010, 1000) ≈ 9.05
-       [math/mod.rs: StableSwap::compute_y(), ~8 Newton iterations]
+       (D < sum of reserves because the pool is imbalanced 100:1;
+        for a balanced pool D = sum)
 
-   dy = 10 - 9.05 - 1 = 0.949 SOL (round down by 1)
+   New reserve A = 1000 + 99.95 = 1099.95
+   New reserve B = compute_y(1099.95, 998.07, 1000) ≈ 1.09
+       [math/mod.rs: StableSwap::compute_y(), ~8 Newton iterations]
+       (for a balanced 1000/1000 pool with the same A and trade, the output would be 99.94)
+
+   dy = 10 - 1.09 - 1 = 7.91 SOL (round down by 1)
        [math/mod.rs: StableSwap::get_dy(), line 181-185]
 
 5. Slippage check:

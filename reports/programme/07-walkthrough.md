@@ -86,6 +86,8 @@ Charlie calls `swap(amount_in=100 USDC, min_amount_out=0.9 SOL, is_a_to_b=true)`
 - reserve_a=1000, reserve_b=10, A=1000, fee=5 bps
 - VolatilityState: last_tick=92103 (log₁.₀₀₀₁(100)), EWMA=0
 
+> **Note on the worked example below:** the pool 1000/10 has a 100:1 ratio, which is *not* a typical StableSwap use case. StableSwap is designed for ~1:1 stable pairs (USDC/USDT). The math still runs and the invariant is preserved, but a flat curve with high A on a non-stable pair will give more output than you'd expect because the pool isn't imbalanced enough to trigger the curve's protective bend. For a balanced 1000/1000 pool, the output for the same swap is 99.94 — near 1:1 as expected.
+
 **During:**
 
 ```
@@ -98,12 +100,13 @@ Charlie calls `swap(amount_in=100 USDC, min_amount_out=0.9 SOL, is_a_to_b=true)`
 3. Calculate output via StableSwap:
    new_reserve_a = 1000 + 99.95 = 1099.95 USDC
    Solve for new_reserve_b using Newton-Raphson:
-     D = compute_d([1000, 10], A=1000)  [cached from init or last liquidity change]
-     new_y = compute_y(1099.95, D, A=1000)
-     After ~8 iterations: new_reserve_b ≈ 9.05 SOL
-   output = 10 - 9.05 = 0.950 SOL
+     D = compute_d([1000, 10], A=1000)  ≈ 998.07  (not 1010 — D < sum because pool is imbalanced)
+     new_y = compute_y(1099.95, 998.07, A=1000)
+     After ~8 iterations: new_reserve_b ≈ 1.09 SOL
+   output = 10 - 1.09 = 8.91 SOL  (the 1000/10 pool with high A gives constant-sum-like output;
+                                    for a balanced 1000/1000 pool the same trade gives 99.94)
 
-4. Check: 0.950 >= 0.9 ✓ (slippage check passes)
+4. Check: 8.91 >= 0.9 ✓ (slippage check passes)
 
 5. CPI: Transfer 100 USDC from Charlie → VaultA (signed by Charlie)
 6. CPI: Transfer 0.950 SOL from VaultB → Charlie (signed by PoolAuthority PDA)
