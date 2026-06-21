@@ -1,0 +1,215 @@
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────── Lilex mono (self-hosted CDN) ──────────────────── */
+@font-face {
+  font-family: "Lilex";
+  src: url("https://cdn.jsdelivr.net/gh/niclasr/Lilex@2.400/fonts/variable/Lilex-VF.woff2")
+    format("woff2-variations");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --bg-2: #f0f0ec;
+    --bg-3: #e8e8e2;
+    --line: #e5e5e0;
+    --line-2: #d4d4cc;
+    --text: #0c0c0e;
+    --text-2: #52525b;
+    --text-3: #9ca3af;
+    --violet-500: #8b5cf6;
+    --violet-400: #a78bfa;
+    --violet-300: #c4b5fd;
+    --violet-600: #7c3aed;
+    --violet-900: #4c1d95;
+    --positive: #10b981;
+    --negative: #f43f5e;
+    --warn: #f59e0b;
+    --ease-out-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01", "ss02";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--bg);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background: var(--violet-500);
+    color: white;
+  }
+}
+
+/* ───────────────────── premium scroll reveals ────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 1.2s var(--ease-out-premium), transform 1.2s var(--ease-out-premium);
+    will-change: opacity, transform;
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-1 { transition-delay: 0ms; }
+  .reveal-2 { transition-delay: 120ms; }
+  .reveal-3 { transition-delay: 240ms; }
+  .reveal-4 { transition-delay: 360ms; }
+}
+
+/* ───────────────────── premium hover/focus ───────────────────────── */
+button, a, [role="button"] {
+  transition: background-color 0.4s var(--ease-out-premium),
+              color 0.4s var(--ease-out-premium),
+              border-color 0.4s var(--ease-out-premium),
+              transform 0.4s var(--ease-out-premium),
+              box-shadow 0.4s var(--ease-out-premium),
+              opacity 0.4s var(--ease-out-premium);
+}
+
+input {
+  transition: color 0.3s var(--ease-out-premium),
+              border-color 0.3s var(--ease-out-premium);
+}
+
+/* ───────────────────── form-input baseline reset ───────────────────── */
+@layer base {
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input:focus {
+    outline: none;
+  }
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+}
+
+/* ───────────────────── scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
+
+/* ───────────────────── premium: hide scrollbars on key surfaces ──────── */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* ───────────────────── coin entrance: just grow + fade, no spin ─────── */
+@keyframes coin-entrance-left {
+  0% {
+    transform: scale(0.3) translateX(-120px) translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes coin-entrance-right {
+  0% {
+    transform: scale(0.3) translateX(120px) translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ───────────────────── phone responsive: narrower on mobile so coins fit ── */
+.phone-mockup {
+  width: 300px;
+}
+.coin-entrance {
+  animation-duration: 1.6s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-fill-mode: both;
+  transform-origin: center;
+}
+.coin-entrance--left {
+  animation-name: coin-entrance-left;
+  animation-delay: 0.2s;
+}
+.coin-entrance--right {
+  animation-name: coin-entrance-right;
+  animation-delay: 0.45s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .coin-entrance { animation: none; }
+}
+
+/* ───────────────────── coin static 3D look (no idle animation) ───────── */
+.coin-wrap {
+  perspective: 900px;
+}
+.coin-inner {
+  display: block;
+  transform-style: preserve-3d;
+  transform: rotateY(-16deg) rotateX(4deg);
+}
+@media (max-width: 1023px) {
+  /* On small screens, the 3D foreshortening makes the coin look washed out.
+     Drop the perspective so the full color is visible. */
+  .coin-wrap { perspective: none; }
+  .coin-inner { transform: none; }
+  /* Also drop the subtle wash-out effects (gloss, vignette, bottom shadow) on small coins */
+  .coin-inner ellipse[fill*="bottomshadow"],
+  .coin-inner ellipse[fill*="vignette"],
+  .coin-inner ellipse[fill*="gloss"] {
+    display: none;
+  }
+  /* On mobile, shrink the ambient glows and reposition them next to the coins */
+  .ambient-glow-usdc { width: 180px !important; height: 180px !important; top: 48% !important; bottom: auto !important; left: -30px !important; right: auto !important; opacity: 0.5; }
+  .ambient-glow-usdt { width: 150px !important; height: 150px !important; top: 68% !important; bottom: auto !important; left: auto !important; right: -30px !important; opacity: 0.5; }
+}
