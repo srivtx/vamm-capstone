@@ -332,15 +332,14 @@ function Coin({
             {isUsdc ? (
               <text
                 x="50" y="50" textAnchor="middle" dominantBaseline="central"
-                fontSize="42" fontWeight="700" fill={textColor}
+                fontSize="42" fontWeight="900" fill={textColor}
                 fontFamily="'Geist', 'Inter', system-ui, -apple-system, sans-serif"
-                fontWeight="900"
                 style={{ fontStretch: 'condensed' }}
               >$</text>
             ) : (
               <text
                 x="50" y="50" textAnchor="middle" dominantBaseline="central"
-                fontSize="52" fontWeight="700" fill={textColor}
+                fontSize="52" fontWeight="900" fill={textColor}
                 fontFamily="'Geist', 'Inter', system-ui, -apple-system, sans-serif"
                 style={{ fontStretch: 'condensed' }}
               >₮</text>
