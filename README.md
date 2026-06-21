@@ -129,6 +129,24 @@ anchor test
 
 Requires Solana CLI, Anchor CLI, and Rust.
 
+## Simulator (frontend)
+
+A browser-based simulator lives at `vamm/app/`. It runs the same math as the on-chain program (1:1 canonical Curve StableSwap + EWMA volatility) in TypeScript so you can see the brain respond without deploying.
+
+```bash
+cd vamm-capstone/vamm/app
+pnpm install
+pnpm dev          # http://localhost:3000
+```
+
+Then open `http://localhost:3001/` for the landing page and `http://localhost:3001/simulate` for the interactive swap UI.
+
+- `lib/stableswap.ts` — canonical Curve `get_D`, `get_y`, `get_Dy` (Newton-Raphson)
+- `lib/ewma.ts` — `updateEwma`, `sigmaToA`, `computeFee`, `smoothstep`, `limitFeeChange`
+- `lib/simulator.ts` — `PoolSimulator` with swap / crankVolatility / crankCurve / addLiquidity / history snapshots
+
+The on-chain Rust math has 3 documented bugs vs canonical Curve (see `0x2vamm/03-stableswap.md` and the `__tests__/` investigations). The simulator uses the correct math so the demo works; do not copy the Rust math without the fixes.
+
 ## Status
 
 Working end-to-end on devnet. Single program, six instructions, full StableSwap math with on-chain volatility engine. The A ramp works, fee synthesis is live. Research-grade — do not deploy to mainnet without an audit.
