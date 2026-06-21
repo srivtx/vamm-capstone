@@ -11,23 +11,6 @@ const DEFAULT_CONFIG: PoolConfig = {
   baseFeeBps: 5n,
   reserveA: 1_000_000n * 1_000_000n,
   reserveB: 1_000_000n * 1_000_000n,
-  sigma: 0n,
-  ewma15min: 0n,
-  feeEma: 0n,
-  rampStartSlot: 0,
-  rampEndSlot: 0,
-  curveAStart: 100n,
-  curveATarget: 100n,
-  curveACurrent: 100n,
-  lastTick: 0,
-  lastSwapPriceX64: 0n,
-  lastSwapSlot: 0,
-  currentFeeBps: 5n,
-  protocolFeesA: 0n,
-  protocolFeesB: 0n,
-  slot: 0,
-  history: [],
-  reserveSeed: 0n,
 };
 
 const SCALE = 1_000_000_000_000n; // 1e12
