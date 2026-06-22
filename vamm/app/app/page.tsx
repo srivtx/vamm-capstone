@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import PaperPrompt from "./PaperPrompt";
 
 export default function HomePage() {
   return (
@@ -61,13 +62,6 @@ export default function HomePage() {
                   style={{ transitionTimingFunction: "var(--ease-out-premium)" }}
                 >
                   Open simulator →
-                </Link>
-                <Link
-                  href="/paper"
-                  className="font-mono text-xs uppercase tracking-[0.08em] border border-line text-text-2 px-5 py-3 rounded-lg hover:text-text hover:border-text-2 hover:-translate-y-0.5 transition-all duration-500"
-                  style={{ transitionTimingFunction: "var(--ease-out-premium)" }}
-                >
-                  Read paper ↓
                 </Link>
                 <a
                   href="https://github.com/srivtx/vamm-capstone"
@@ -828,6 +822,7 @@ function ShowcaseScreen() {
           </div>
         </div>
       </div>
+      <PaperPrompt />
     </div>
   );
 }
