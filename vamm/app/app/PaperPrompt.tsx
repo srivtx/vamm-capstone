@@ -18,15 +18,6 @@ export default function PaperPrompt() {
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") dismiss();
     };
@@ -49,103 +40,69 @@ export default function PaperPrompt() {
   return (
     <div
       role="dialog"
-      aria-modal="true"
       aria-label="V-AMM research paper"
       className={
-        "fixed inset-0 z-50 flex items-center justify-center p-4 " +
-        "transition-opacity duration-300 " +
-        (closing ? "opacity-0" : "opacity-100")
+        "fixed z-50 " +
+        // mobile: bottom bar across full width
+        "inset-x-3 bottom-3 " +
+        // desktop: bottom-left floating card (away from the phone mockup on the right)
+        "md:inset-auto md:left-5 md:bottom-5 md:max-w-[380px] " +
+        "transition-all duration-300 " +
+        (closing
+          ? "opacity-0 translate-y-2"
+          : "opacity-100 translate-y-0")
       }
       style={{ transitionTimingFunction: "var(--ease-out-premium)" }}
     >
-      {/* light dim backdrop, no blur */}
-      <button
-        aria-label="Close"
-        onClick={dismiss}
-        className="absolute inset-0 bg-text/[0.06]"
-      />
-
-      {/* card — white, matches the V-AMM editorial surface */}
-      <div
-        className={
-          "relative w-full max-w-[640px] bg-surface border border-line rounded-2xl overflow-hidden " +
-          "shadow-[0_20px_50px_-20px_rgba(12,12,14,0.18)] " +
-          "transition-all duration-400 " +
-          (closing
-            ? "opacity-0 scale-[0.97] translate-y-1"
-            : "opacity-100 scale-100 translate-y-0")
-        }
-        style={{ transitionTimingFunction: "var(--ease-out-premium)" }}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-[1.05fr_1fr]">
-          {/* ────── visual (left) ────── */}
-          <div className="relative bg-bg p-5 sm:p-6 flex items-center justify-center min-h-[180px] sm:min-h-0">
-            <div className="relative w-[160px] sm:w-[170px] aspect-[3/4] bg-white border border-line rounded-md overflow-hidden shadow-[0_10px_24px_-10px_rgba(12,12,14,0.18)]">
-              <iframe
-                src="/VAMM_Style_F-1.pdf#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0"
-                title="V-AMM paper preview"
-                className="w-full h-full border-0 pointer-events-none"
-                tabIndex={-1}
-              />
-              {/* a tiny "page 1" pill on the corner of the paper */}
-              <div className="absolute top-2 right-2 font-mono text-[8px] uppercase tracking-[0.12em] text-text-3 bg-white/90 px-1.5 py-0.5 rounded">
-                p.1
-              </div>
-            </div>
-            {/* subtle paper shadow underneath */}
-            <div className="hidden sm:block absolute bottom-7 left-1/2 -translate-x-1/2 w-[140px] h-3 bg-text/[0.06] rounded-full blur-md -z-10" />
+      <div className="relative border border-line bg-surface rounded-xl shadow-[0_10px_30px_-12px_rgba(12,12,14,0.18)] overflow-hidden">
+        <div className="p-3.5 md:p-4 flex items-start gap-3">
+          {/* tiny paper thumbnail */}
+          <div className="shrink-0 w-12 h-16 md:w-14 md:h-[72px] bg-white border border-line rounded-sm overflow-hidden relative shadow-[0_2px_6px_-2px_rgba(0,0,0,0.15)]">
+            <iframe
+              src="/VAMM_Style_F-1.pdf#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0"
+              title="V-AMM paper preview"
+              className="w-full h-full border-0 pointer-events-none"
+              tabIndex={-1}
+            />
           </div>
 
-          {/* ────── text + cta (right) ────── */}
-          <div className="relative p-5 sm:p-6 flex flex-col">
-            <button
-              onClick={dismiss}
-              aria-label="Dismiss"
-              className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 w-6 h-6 flex items-center justify-center text-text-3 hover:text-text hover:bg-bg rounded transition-colors duration-300"
-            >
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 12 12"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              >
-                <path d="M2 2 L10 10 M10 2 L2 10" />
-              </svg>
-            </button>
-
-            <div className="flex items-center gap-2 mb-2.5">
+          <div className="flex-1 min-w-0 pr-5">
+            <div className="flex items-center gap-1.5 mb-1">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-violet-500" />
-              <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-3">
-                research
+              <span className="font-mono text-[9px] md:text-[10px] uppercase tracking-[0.16em] text-text-3">
+                new · research
               </span>
             </div>
-
-            <h2 className="font-display text-[22px] sm:text-[26px] leading-[1.1] tracking-[-0.02em] text-text mb-2.5">
-              Read the
-              <br />
-              <em className="italic text-violet-500">V-AMM</em> paper.
-            </h2>
-
-            <p className="text-[13px] leading-[1.5] text-text-2 mb-4 max-w-[28ch]">
-              StableSwap, EWMA σ, and dynamic fees — the math, the on-chain
-              design, the results. Eight pages.
-            </p>
-
-            <div className="mt-auto">
-              <Link
-                href="/paper"
-                onClick={dismiss}
-                className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] bg-text text-bg hover:bg-violet-500 hover:text-white px-4 py-2.5 rounded-lg transition-all duration-500"
-                style={{ transitionTimingFunction: "var(--ease-out-premium)" }}
-              >
-                Read paper
-                <span>→</span>
-              </Link>
+            <div className="text-[13px] md:text-[14px] leading-[1.3] text-text font-medium mb-1.5">
+              The V-AMM paper is out.
             </div>
+            <Link
+              href="/paper"
+              onClick={dismiss}
+              className="inline-flex items-center gap-1 font-mono text-[10px] md:text-[11px] uppercase tracking-[0.12em] text-violet-500 hover:text-violet-600 transition-colors duration-300"
+            >
+              Read it
+              <span>→</span>
+            </Link>
           </div>
+
+          <button
+            onClick={dismiss}
+            aria-label="Dismiss"
+            className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-text-3 hover:text-text transition-colors duration-300 rounded"
+          >
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            >
+              <path d="M2 2 L10 10 M10 2 L2 10" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
