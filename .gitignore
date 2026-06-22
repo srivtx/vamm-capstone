@@ -56,3 +56,9 @@ il_protection_report.md
 replicaofdetails.md
 sortie-devtools/
 vamm-full-source.md
+
+# Unrelated local artifacts (not part of V-AMM capstone)
+.sortie-private/
+DISCORD_POST.md
+DISCORD_POST.txt
+sortie-app-v2/
