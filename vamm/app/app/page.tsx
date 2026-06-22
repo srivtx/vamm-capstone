@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import PaperPrompt from "./PaperPrompt";
+import ResearchCard from "./ResearchCard";
 
 export default function HomePage() {
   return (
@@ -103,6 +103,11 @@ export default function HomePage() {
                 <PhoneMockup />
               </div>
             </div>
+          </div>
+
+          {/* ─── research paper card — sits in the gap between left content and phone ─── */}
+          <div className="hidden lg:block absolute z-20 right-[calc(50%+30px)] bottom-6 xl:bottom-10">
+            <ResearchCard />
           </div>
         </div>
       </section>
@@ -821,8 +826,7 @@ function ShowcaseScreen() {
             })}
           </div>
         </div>
-      </div>
-      <PaperPrompt />
+              </div>
     </div>
   );
 }
