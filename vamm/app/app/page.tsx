@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import ResearchCard from "./ResearchCard";
+import ResearchSection from "./ResearchSection";
 
 export default function HomePage() {
   return (
@@ -72,6 +72,13 @@ export default function HomePage() {
                 >
                   GitHub ↗
                 </a>
+                <a
+                  href="#research"
+                  className="font-mono text-xs uppercase tracking-[0.08em] border border-line text-text-2 px-5 py-3 rounded-lg hover:text-text hover:border-text-2 hover:-translate-y-0.5 transition-all duration-500"
+                  style={{ transitionTimingFunction: "var(--ease-out-premium)" }}
+                >
+                  Research →
+                </a>
               </div>
 
               {/* small spec strip */}
@@ -103,11 +110,6 @@ export default function HomePage() {
                 <PhoneMockup />
               </div>
             </div>
-          </div>
-
-          {/* ─── research paper card — sits in the gap between left content and phone ─── */}
-          <div className="hidden lg:block absolute z-20 right-[calc(50%+30px)] bottom-6 xl:bottom-10">
-            <ResearchCard />
           </div>
         </div>
       </section>
@@ -209,6 +211,13 @@ A_ramp        =  linear interp over 9000 slots (~1h)
         </div>
       </RevealSection>
 
+      {/* ════════════════════ RESEARCH PAPER ════════════════════ */}
+      <RevealSection id="research" className="border-b border-line">
+        <div className="max-w-[1280px] mx-auto px-5 md:px-10 py-14 md:py-24">
+          <ResearchSection />
+        </div>
+      </RevealSection>
+
       {/* ════════════════════ FOOTER ════════════════════ */}
       <footer className="max-w-[1280px] mx-auto px-6 md:px-10 py-12 flex flex-wrap gap-x-8 gap-y-2 font-mono text-[11px] text-text-3">
         <span>V-AMM · Turbine Capstone · 2026</span>
@@ -232,10 +241,12 @@ A_ramp        =  linear interp over 9000 slots (~1h)
 // ──────────────────────────────────────────────────────────────────────────────
 
 function RevealSection({
+  id,
   children,
   className,
   delay = 0,
 }: {
+  id?: string;
   children: React.ReactNode;
   className?: string;
   delay?: 0 | 1 | 2 | 3;
@@ -243,7 +254,7 @@ function RevealSection({
   const ref = useReveal<HTMLElement>();
   const cls = delay ? `reveal reveal-${delay}` : "reveal";
   return (
-    <section ref={ref} className={`${cls} ${className ?? ""}`}>
+    <section id={id} ref={ref} className={`${cls} ${className ?? ""}`}>
       {children}
     </section>
   );

@@ -63,6 +63,22 @@
   }
 }
 
+/* ───────────────────── Lenis: let it own scrolling, no double-render ── */
+html.lenis,
+html.lenis body {
+  height: 100%;
+}
+html.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+html.lenis-smooth body {
+  overflow: hidden;
+}
+/* Disable Lenis on touch devices — native momentum scroll feels better */
+html.lenis-stopped body {
+  overflow: clip;
+}
+
 /* ───────────────────── premium scroll reveals ────────────────────── */
 @media (prefers-reduced-motion: no-preference) {
   .reveal {

@@ -7,10 +7,8 @@ import Lenis from "lenis";
  * Premium smooth scroll using Lenis. Gives the page a weighted, inertia feel —
  * scrolling builds up momentum rather than jumping instantly.
  *
- * Tweak:
- *   - duration  (s): higher = longer animation per scroll input
- *   - smoothWheel: false would let the browser handle wheel; we want Lenis to
- *   - wheelMultiplier: how aggressively each wheel event translates to scroll
+ * Also intercepts in-page anchor clicks (#section-id) and scrolls to them via
+ * Lenis so anchor links still work under smooth-scroll.
  */
 export default function SmoothScroll() {
   useEffect(() => {
@@ -29,8 +27,23 @@ export default function SmoothScroll() {
     }
     raf = requestAnimationFrame(tick);
 
+    function onAnchorClick(e: MouseEvent) {
+      const a = (e.target as HTMLElement | null)?.closest(
+        "a[href^='#']"
+      ) as HTMLAnchorElement | null;
+      if (!a) return;
+      const href = a.getAttribute("href");
+      if (!href || href === "#") return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      lenis.scrollTo(target as HTMLElement, { offset: -20 });
+    }
+    document.addEventListener("click", onAnchorClick);
+
     return () => {
       cancelAnimationFrame(raf);
+      document.removeEventListener("click", onAnchorClick);
       lenis.destroy();
     };
   }, []);
