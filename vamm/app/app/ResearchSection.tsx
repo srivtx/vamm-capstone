@@ -110,6 +110,44 @@ export default function ResearchSection() {
 
           {/* right-edge ribbon */}
           <div className="absolute top-0 right-0 bottom-0 w-1 bg-violet-500" />
+
+          {/* ── small abstract violet diagram (compact) ── */}
+          <svg
+            className="absolute z-20 pointer-events-none"
+            style={{ right: "14px", top: "26px", width: "78px", height: "60px" }}
+            viewBox="0 0 78 60"
+            aria-hidden
+          >
+            {/* main curve */}
+            <path
+              d="M 4 50 C 16 50 26 50 33 46 C 40 42 42 26 47 14 C 52 4 62 3 74 4"
+              stroke="#7c3aed"
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+            />
+            {/* dot at the bend */}
+            <circle cx="47" cy="14" r="1.6" fill="#7c3aed" />
+            {/* ghost lines (range of motion) */}
+            <path
+              d="M 4 50 L 74 22"
+              stroke="#7c3aed"
+              strokeWidth="0.6"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.28"
+              strokeDasharray="1.5 2"
+            />
+            <path
+              d="M 4 50 L 74 0"
+              stroke="#7c3aed"
+              strokeWidth="0.6"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.22"
+              strokeDasharray="1.5 2"
+            />
+          </svg>
         </div>
 
         {/* ───── DESKTOP: tall paper cover with full content ───── */}
@@ -119,11 +157,11 @@ export default function ResearchSection() {
         >
           <div
             aria-hidden
-            className="absolute inset-0 opacity-[0.5]"
+            className="absolute inset-0 opacity-[0.3]"
             style={{
               backgroundImage:
                 "linear-gradient(to right, #e5e5e0 1px, transparent 1px), linear-gradient(to bottom, #e5e5e0 1px, transparent 1px)",
-              backgroundSize: "28px 28px",
+              backgroundSize: "32px 32px",
             }}
           />
           <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-violet-500/12 to-transparent" />
@@ -189,10 +227,123 @@ export default function ResearchSection() {
           </div>
 
           <div className="absolute top-0 right-0 bottom-0 w-1.5 bg-violet-500" />
+
+          {/* ── ink-stamp ── */}
+          <div
+            className="absolute top-[58%] right-7 z-20 font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-violet-500/55 border border-violet-500/35 px-1.5 py-0.5 rounded-sm"
+            style={{ transform: "rotate(-6deg)" }}
+          >
+            v-amm
+          </div>
+
+          {/* ── abstract violet diagram: a "breathing" curve that morphs ── */}
+          <svg
+            className="absolute z-20 pointer-events-none"
+            style={{ right: "30px", top: "60px", width: "170px", height: "135px" }}
+            viewBox="0 0 170 135"
+            aria-hidden
+          >
+            {/* a single flowing line that bends — the "morph" — in violet */}
+            <path
+              d="M 8 95 C 30 95 50 95 65 88 C 80 80 85 50 95 30 C 105 14 130 12 162 14"
+              stroke="#7c3aed"
+              strokeWidth="1.4"
+              fill="none"
+              strokeLinecap="round"
+            />
+
+            {/* a small filled dot at the bend — the current state */}
+            <circle cx="95" cy="30" r="2.4" fill="#7c3aed" />
+
+            {/* two thin ghost lines showing the curve's range of motion (high A vs low A) */}
+            <path
+              d="M 8 95 L 162 38"
+              stroke="#7c3aed"
+              strokeWidth="0.7"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.28"
+              strokeDasharray="2 2.5"
+            />
+            <path
+              d="M 8 95 L 162 6"
+              stroke="#7c3aed"
+              strokeWidth="0.7"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.22"
+              strokeDasharray="2 2.5"
+            />
+
+            {/* small tick marks on the right end — showing the range */}
+            <path
+              d="M 158 14 L 162 14"
+              stroke="#7c3aed"
+              strokeWidth="0.8"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.5"
+            />
+            <path
+              d="M 158 38 L 162 38"
+              stroke="#7c3aed"
+              strokeWidth="0.8"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.5"
+            />
+            <path
+              d="M 158 6 L 162 6"
+              stroke="#7c3aed"
+              strokeWidth="0.8"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.5"
+            />
+
+            {/* tiny annotation — italic σ above the bend */}
+            <text
+              x="100"
+              y="14"
+              fontFamily="Newsreader, Georgia, serif"
+              fontStyle="italic"
+              fontSize="11"
+              fill="#7c3aed"
+              dominantBaseline="hanging"
+            >
+              σ
+            </text>
+
+            {/* "A" sits above the curve at the top-right tick */}
+            <text
+              x="152"
+              y="2"
+              fontFamily="Newsreader, Georgia, serif"
+              fontStyle="italic"
+              fontSize="9"
+              fill="#7c3aed"
+              opacity="0.8"
+              dominantBaseline="hanging"
+            >
+              A
+            </text>
+            <text
+              x="2"
+              y="102"
+              fontFamily="Newsreader, Georgia, serif"
+              fontStyle="italic"
+              fontSize="10"
+              fill="#1a1a1a"
+              opacity="0.6"
+              dominantBaseline="middle"
+            >
+              t
+            </text>
+          </svg>
         </div>
 
         {/* soft paper shadow under the card (desktop only) */}
-        <div className="hidden lg:block absolute -bottom-4 left-8 right-8 h-6 bg-text/[0.07] rounded-full blur-md -z-10" />
+        <div className="hidden lg:block absolute -bottom-4 left-8 right-8 h-6 bg-text/[0.07] rounded-full blur-md -z-30" />
       </Link>
     </div>
   );
